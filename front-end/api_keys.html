@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block titulo %}API keys - Wholife{% endblock %}
+
+{% block conteudo %}
+<section class="api-keys" data-servico="cpfhub">
+  <label>
+    <a href="https://www.cpfhub.io/documentacao/inicio" target="_blank" rel="noopener noreferrer">CPF HUB</a>
+  </label>
+  <input type="password" placeholder="API key">
+  <button>Salvar</button>
+  <p></p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll(".api-keys").forEach((bloco) => {
+    const campo = bloco.querySelector("input");
+    const status = bloco.querySelector("p");
+
+    bloco.querySelector("button").addEventListener("click", async () => {
+      const dados = new FormData();
+      dados.append("servico", bloco.dataset.servico);
+      dados.append("chave", campo.value);
+
+      const resp = await fetch("/api-keys", { method: "POST", body: dados });
+
+      campo.value = "";
+      status.textContent = resp.ok ? "Salva." : "Erro ao salvar.";
+    });
+  });
+</script>
+{% endblock %}

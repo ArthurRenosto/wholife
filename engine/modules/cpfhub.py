@@ -20,6 +20,9 @@ class CpfHub():
 
         pessoa = data.get("data", {})
 
+        if pessoa is None:
+            return ""
+        
         genero = {"F": "Feminino", "M": "Masculino"}.get(pessoa.get("gender"), "")
 
         return (

@@ -7,9 +7,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  {% include "partials/header.html" %}
+  {% include "partials/sidebar.html" %}
 
-  {% block conteudo %}{% endblock %}
+  <main>
+    {% block conteudo %}{% endblock %}
+  </main>
 
   {% include "partials/footer.html" %}
 

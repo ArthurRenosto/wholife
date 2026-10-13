@@ -2,10 +2,33 @@
 
 {% block conteudo %}
 <form id="form">
-  <input name="username" placeholder="Nome">
-  <input name="email" type="email" placeholder="email">
-  <input name="cpf" placeholder="cpf">
-  <button type="submit">Buscar</button>
+  <div class="campos-duplos">
+    <input
+      name="nome_completo"
+      placeholder="Nome completo"
+    >
+
+    <input
+      name="username"
+      placeholder="Nickname"
+    >
+
+    <input
+      name="email"
+      type="email"
+      placeholder="E-mail"
+    >
+
+    <input
+      name="cpf"
+      placeholder="CPF"
+    >
+  </div>
+
+  <button type="submit" id="botao-buscar">
+    <span id="texto-botao">Buscar</span>
+    <span id="animacao-botao" aria-hidden="true" hidden></span>
+  </button>
 </form>
 
 <div class="caixas">
@@ -29,28 +52,65 @@
 {% block scripts %}
 <script>
   const form = document.getElementById("form");
+
   const saidaUsername = document.getElementById("saida-username");
   const saidaEmail = document.getElementById("saida-email");
   const saidaCpf = document.getElementById("saida-cpf");
+
+  const botaoBuscar = document.getElementById("botao-buscar");
+  const textoBotao = document.getElementById("texto-botao");
+  const animacaoBotao = document.getElementById("animacao-botao");
+
+  function definirCarregamento(ativo) {
+    botaoBuscar.disabled = ativo;
+    botaoBuscar.classList.toggle("buscando", ativo);
+
+    textoBotao.hidden = ativo;
+    animacaoBotao.hidden = !ativo;
+
+    if (ativo) {
+      animacaoBotao.textContent = "";
+      animacaoBotao.setAttribute("aria-label", "Buscando");
+
+      const pontos = document.createElement("span");
+      pontos.className = "pontos-animados";
+      pontos.textContent = "...";
+
+      animacaoBotao.appendChild(pontos);
+    } else {
+      textoBotao.textContent = "Buscar";
+      animacaoBotao.textContent = "";
+    }
+  }
 
   function mostrarLinks(texto) {
     saidaUsername.textContent = "";
 
     const bloco = document.createElement("div");
 
-    (texto ?? "").split("\n").filter((linha) => linha.trim()).forEach((linha) => {
-      if (linha.startsWith("http")) {
-        const a = document.createElement("a");
-        a.href = linha;
-        a.textContent = linha;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        bloco.appendChild(a);
-      } else {
-        bloco.appendChild(document.createTextNode(linha));
-      }
-      bloco.appendChild(document.createTextNode("\n"));
-    });
+    (texto ?? "")
+      .split("\n")
+      .filter((linha) => linha.trim())
+      .forEach((linha) => {
+        if (linha.startsWith("http")) {
+          const a = document.createElement("a");
+
+          a.href = linha;
+          a.textContent = linha;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+
+          bloco.appendChild(a);
+        } else {
+          bloco.appendChild(
+            document.createTextNode(linha)
+          );
+        }
+
+        bloco.appendChild(
+          document.createTextNode("\n")
+        );
+      });
 
     saidaUsername.appendChild(bloco);
   }
@@ -58,26 +118,45 @@
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    saidaUsername.textContent = "Buscando";
-    saidaEmail.textContent = "Buscando";
-    saidaCpf.textContent = "Buscando";
-    saidaUsername.classList.add("buscando");
-    saidaEmail.classList.add("buscando");
-    saidaCpf.classList.add("buscando");
+    definirCarregamento(true);
 
-    const resp = await fetch("/consulta", {
-      method: "POST",
-      body: new FormData(form),
-    });
-    const dados = await resp.json();
+    const dadosForm = new FormData(form);
 
-    saidaUsername.classList.remove("buscando");
-    saidaEmail.classList.remove("buscando");
-    saidaCpf.classList.remove("buscando");
+    dadosForm.append(
+      "cpfhub_key",
+      localStorage.getItem("cpfhub_key") ?? ""
+    );
 
-    mostrarLinks(dados.sherlock);
-    saidaEmail.textContent = dados.xposed ?? "";
-    saidaCpf.textContent = dados.cpfhub ?? "";
+    try {
+      const resp = await fetch("/consulta", {
+        method: "POST",
+        body: dadosForm
+      });
+
+      if (!resp.ok) {
+        throw new Error(
+          "Erro na consulta: " + resp.status
+        );
+      }
+
+      const dados = await resp.json();
+
+      mostrarLinks(dados.sherlock);
+      saidaEmail.textContent = dados.xposed ?? "";
+      saidaCpf.textContent = dados.cpfhub ?? "";
+
+    } catch (erro) {
+      saidaUsername.textContent =
+        "Erro ao realizar a consulta.";
+
+      saidaEmail.textContent = "";
+      saidaCpf.textContent = "";
+
+      console.error(erro);
+
+    } finally {
+      definirCarregamento(false);
+    }
   });
 </script>
 {% endblock %}
