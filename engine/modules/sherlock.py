@@ -11,7 +11,7 @@ class Sherlock:
         lista_sites = [
             "GitHub", "Twitter", "YouTube", "Instagram",
             "TryHackMe", "HackTheBox", "Reddit",
-            "LinkedIn", "Discord"
+            "LinkedIn", "Discord", "TikTok",  "Steam", "xHamster", "Pinterest"
         ]
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -30,9 +30,10 @@ class Sherlock:
             else:
                 conteudo = ""
 
-        return self.formatar_saida(conteudo) # Devolvendo resultado formatado
+        return self.formatar_saida(conteudo)
 
     def formatar_saida(self, conteudo):
-        return conteudo
+        conteudo_formatado = conteudo.splitlines()
+        return "\n".join(conteudo_formatado[:-1])
 
 

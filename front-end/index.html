@@ -1,11 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wholife</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block conteudo %}
+<form id="form">
+  <input name="username" placeholder="Nome">
+  <input name="email" type="email" placeholder="email">
+  <input name="cpf" placeholder="cpf">
+  <button type="submit">Buscar</button>
+</form>
+
+<div class="caixas">
+  <section>
+    <h2>Links</h2>
+    <pre class="conteudo" id="saida-username"></pre>
+  </section>
+
+  <section>
+    <h2>Vazamentos</h2>
+    <pre class="conteudo" id="saida-email"></pre>
+  </section>
+
+  <section>
+    <h2>CPF</h2>
+    <pre class="conteudo" id="saida-cpf"></pre>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("form");
+  const saidaUsername = document.getElementById("saida-username");
+  const saidaEmail = document.getElementById("saida-email");
+  const saidaCpf = document.getElementById("saida-cpf");
+
+  function mostrarLinks(texto) {
+    saidaUsername.textContent = "";
+
+    const bloco = document.createElement("div");
+
+    (texto ?? "").split("\n").filter((linha) => linha.trim()).forEach((linha) => {
+      if (linha.startsWith("http")) {
+        const a = document.createElement("a");
+        a.href = linha;
+        a.textContent = linha;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        bloco.appendChild(a);
+      } else {
+        bloco.appendChild(document.createTextNode(linha));
+      }
+      bloco.appendChild(document.createTextNode("\n"));
+    });
+
+    saidaUsername.appendChild(bloco);
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    saidaUsername.textContent = "Buscando";
+    saidaEmail.textContent = "Buscando";
+    saidaCpf.textContent = "Buscando";
+    saidaUsername.classList.add("buscando");
+    saidaEmail.classList.add("buscando");
+    saidaCpf.classList.add("buscando");
+
+    const resp = await fetch("/consulta", {
+      method: "POST",
+      body: new FormData(form),
+    });
+    const dados = await resp.json();
+
+    saidaUsername.classList.remove("buscando");
+    saidaEmail.classList.remove("buscando");
+    saidaCpf.classList.remove("buscando");
+
+    mostrarLinks(dados.sherlock);
+    saidaEmail.textContent = dados.xposed ?? "";
+    saidaCpf.textContent = dados.cpfhub ?? "";
+  });
+</script>
+{% endblock %}
